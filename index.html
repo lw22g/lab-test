@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المختبر الطبي | Lab Management System</title>
+    <!-- Google Fonts: Cairo for Arabic text and Inter for Latin/Numbers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js for Premium Dashboard Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- App Layout Container -->
+    <div class="app-container no-print">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-placeholder" id="sidebar-logo-container">
+                    <i class="fa-solid fa-microscope logo-icon"></i>
+                </div>
+                <h2 id="sidebar-lab-name">مختبر التحليلات</h2>
+                <span class="badge">لوحة التحكم</span>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>لوحة الإحصائيات</span>
+                </button>
+                <button class="nav-btn" data-tab="data-entry">
+                    <i class="fa-solid fa-address-card"></i>
+                    <span>إدخال بيانات وفحوصات</span>
+                </button>
+                <button class="nav-btn" data-tab="patients-history">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>سجل المراجعين</span>
+                </button>
+                <button class="nav-btn" data-tab="settings">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>إعدادات النظام</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>نظام إدارة المختبر v1.0</p>
+                <small>تصميم احترافي ذكي</small>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Alert Messages Container -->
+            <div id="alert-container" class="alert-container"></div>
+
+            <!-- Tab 0: Dashboard/Analytics -->
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="page-header">
+                    <h1>لوحة الإحصائيات والتحليلات البيانية</h1>
+                    <p class="subtitle">استعرض إحصائيات المختبر اليومية والشهرية وتحليل الفحوصات الأكثر طلباً.</p>
+                </div>
+
+                <!-- Stats Grid Cards -->
+                <div class="dashboard-stats-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="dashboard-stat-card"
+                        style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1.25rem;">
+                        <div style="font-size: 2.2rem; opacity: 0.85;"><i class="fa-solid fa-user-injured"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; opacity: 0.8; font-weight: 700;">إجمالي المراجعين</div>
+                            <h3 id="stat-total-patients"
+                                style="font-size: 1.8rem; font-weight: 800; margin-top: 0.25rem;">0</h3>
+                        </div>
+                    </div>
+                    <div class="dashboard-stat-card"
+                        style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1.25rem;">
+                        <div style="font-size: 2.2rem; opacity: 0.85;"><i class="fa-solid fa-notes-medical"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; opacity: 0.8; font-weight: 700;">إجمالي الزيارات</div>
+                            <h3 id="stat-total-visits"
+                                style="font-size: 1.8rem; font-weight: 800; margin-top: 0.25rem;">0</h3>
+                        </div>
+                    </div>
+                    <div class="dashboard-stat-card"
+                        style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1.25rem;">
+                        <div style="font-size: 2.2rem; opacity: 0.85;"><i class="fa-solid fa-vials"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; opacity: 0.8; font-weight: 700;">إجمالي الفحوصات المنجزة</div>
+                            <h3 id="stat-total-performed"
+                                style="font-size: 1.8rem; font-weight: 800; margin-top: 0.25rem;">0</h3>
+                        </div>
+                    </div>
+                    <div class="dashboard-stat-card"
+                        style="background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1.25rem;">
+                        <div style="font-size: 2.2rem; opacity: 0.85;"><i class="fa-solid fa-flask"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; opacity: 0.8; font-weight: 700;">الفحوصات المعرفة بالنظام</div>
+                            <h3 id="stat-total-configured"
+                                style="font-size: 1.8rem; font-weight: 800; margin-top: 0.25rem;">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="dashboard-charts-layout"
+                    style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <h3>الفحوصات الأكثر طلباً</h3>
+                        </div>
+                        <div class="card-body"
+                            style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="chart-popular-tests"></canvas>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <h3>منحنى عدد الفحوصات في آخر الزيارات</h3>
+                        </div>
+                        <div class="card-body"
+                            style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="chart-earnings-trend"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 1: Data Entry & Testing -->
+            <section id="tab-data-entry" class="tab-content">
+                <div class="page-header">
+                    <h1>إدخال بيانات المراجع والفحوصات</h1>
+                    <p class="subtitle">قم بتسجيل بيانات المراجع واختيار الفحوصات الطبية المطلوبة له.</p>
+                </div>
+
+                <div class="grid-layout">
+                    <!-- Left: Patient Details (2 Columns on grid) -->
+                    <div class="card patient-info-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-user-pen"></i>
+                            <h3>بيانات المراجع الأساسية</h3>
+                            <button id="btn-clear-patient" class="btn btn-sm btn-outline-danger" title="مسح الاستمارة">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                تفريغ
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="patient-search-input">البحث عن مراجع مسجل (الاسم أو الرقم)</label>
+                                    <div class="input-with-icon">
+                                        <i class="fa-solid fa-search"></i>
+                                        <input type="text" id="patient-search-input"
+                                            placeholder="اكتب اسم أو رقم المراجع للبحث...">
+                                    </div>
+                                    <div id="patient-search-results" class="search-suggestions hidden"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="patient-id">رقم المراجع (تلقائي/يدوي)</label>
+                                    <input type="text" id="patient-id" readonly placeholder="سيتولد تلقائياً">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="patient-name">اسم المراجع <span class="required">*</span></label>
+                                    <input type="text" id="patient-name" required placeholder="الاسم الكامل للمراجع">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="patient-phone">رقم الهاتف (الواتساب) <span
+                                            class="required">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="fa-solid fa-phone"></i>
+                                        <input type="text" id="patient-phone" required placeholder="مثال: 07701234567">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="patient-gender">الجنس <span class="required">*</span></label>
+                                    <select id="patient-gender" required>
+                                        <option value="" disabled selected>اختر الجنس</option>
+                                        <option value="ذكر">ذكر</option>
+                                        <option value="أنثى">أنثى</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="patient-age">العمر <span class="required">*</span></label>
+                                    <input type="number" id="patient-age" required min="0" max="150"
+                                        placeholder="العمر بالسنوات">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="test-id">رقم الفحص (تلقائي)</label>
+                                    <input type="text" id="test-id" readonly placeholder="سيتولد تلقائياً">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="test-date">تاريخ الفحص</label>
+                                    <input type="text" id="test-date" readonly>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="test-count">عدد الفحوصات المضافة</label>
+                                    <input type="number" id="test-count" readonly value="0" class="highlighted-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Add Test Form & Selected Tests Table -->
+                    <div class="card tests-selection-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-vial"></i>
+                            <h3>إجراء وإدخال التحاليل</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Custom Searchable Dropdown for Tests -->
+                            <div class="test-adder-box">
+                                <div class="form-group custom-select-container">
+                                    <label>إضافة فحص فردي <span class="required">*</span></label>
+                                    <div class="custom-select-trigger" id="test-select-trigger">
+                                        <span id="test-select-label">ابحث واختر التحليل...</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="custom-select-dropdown hidden" id="test-select-dropdown">
+                                        <input type="text" id="test-search-filter" class="select-search"
+                                            placeholder="ابحث باسم التحليل...">
+                                        <ul id="test-options-list">
+                                            <!-- Dynamic items go here -->
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="profile-select-dropdown">أو إضافة مجموعة (Profile)</label>
+                                    <select id="profile-select-dropdown" style="padding: 0.70rem 1rem;">
+                                        <option value="" disabled selected>اختر مجموعة الفحوصات...</option>
+                                        <!-- Dynamic options -->
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="test-result-value">النتيجة (الرنج الطبيعي) <span class="required">*</span></label>
+                                    <div class="input-unit-group">
+                                        <input type="text" id="test-result-value" placeholder="النتيجة الرقمية/النصية">
+                                        <span class="unit-badge" id="test-selected-unit">-</span>
+                                    </div>
+                                </div>
+
+                                <div class="add-btn-wrapper">
+                                    <button type="button" id="btn-add-test" class="btn btn-primary">
+                                        <i class="fa-solid fa-plus"></i>
+                                        إضافة فحص
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="current-tests-section">
+                                <h4 class="section-title">الفحوصات المسجلة لهذه الزيارة</h4>
+                                <div class="table-container">
+                                    <table class="data-table" id="current-tests-table">
+                                        <thead>
+                                            <tr>
+                                                <th>اسم التحليل</th>
+                                                <th>الرنج الطبيعي</th>
+                                                <th>الرنج الفعلي</th>
+                                                <th>الوحدة</th>
+                                                <th>الحالة</th>
+                                                <th>إجراء</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="empty-row">
+                                                <td colspan="6" class="text-center">لا توجد تحاليل مضافة بعد. اختر تحليلاً من الأعلى.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="actions-footer"
+                                style="display: flex; justify-content: flex-end; align-items: center; width: 100%; flex-wrap: wrap; gap: 15px;">
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" id="btn-save-print" class="btn btn-success btn-lg">
+                                        <i class="fa-solid fa-print"></i>
+                                        حفظ المراجع وطباعة التقرير
+                                    </button>
+                                    <button type="button" id="btn-send-whatsapp" class="btn btn-outline-success btn-lg">
+                                        <i class="fa-brands fa-whatsapp"></i>
+                                        إرسال PDF عبر الواتساب
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Patients History -->
+            <section id="tab-patients-history" class="tab-content">
+                <div class="page-header">
+                    <h1>سجل المراجعين الموثق</h1>
+                    <p class="subtitle">استعرض المراجعين السابقين، وابحث عن فحص مراجع وتفاصيل زياراته السابقة.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-users"></i>
+                        <h3>قائمة المراجعين والزيارات</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="history-search-bar">
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="history-search-input"
+                                    placeholder="ابحث باسم المراجع أو الرقم التعريفي...">
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="data-table" id="history-patients-table">
+                                <thead>
+                                    <tr>
+                                        <th>رقم المراجع</th>
+                                        <th>اسم المراجع</th>
+                                        <th>الجنس</th>
+                                        <th>العمر</th>
+                                        <th>عدد الزيارات</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-row">
+                                        <td colspan="6" class="text-center">لا يوجد مراجعين مسجلين حالياً.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Past Visits Details Modal/Section -->
+                <div id="patient-detail-card" class="card hidden margin-top-2">
+                    <div class="card-header bg-light" style="flex-wrap: wrap; gap: 10px;">
+                        <i class="fa-solid fa-history"></i>
+                        <h3 style="flex-grow: 1; min-width: 200px;">سجل الفحوصات للمراجع: <span id="detail-patient-name"
+                                class="text-blue"></span></h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-outline-primary" id="btn-compare-mode">
+                                <i class="fa-solid fa-code-compare"></i> مقارنة الزيارات
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-close-details">إغلاق
+                                التفاصيل</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="patient-profile-summary">
+                            <div><strong>رقم المراجع:</strong> <span id="detail-patient-id"></span></div>
+                            <div><strong>رقم الهاتف:</strong> <span id="detail-patient-phone"></span></div>
+                            <div><strong>الجنس:</strong> <span id="detail-patient-gender"></span></div>
+                            <div><strong>العمر:</strong> <span id="detail-patient-age"></span> سنة</div>
+                        </div>
+
+                        <!-- Comparison Selection Bar -->
+                        <div id="comparison-bar" class="comparison-bar hidden">
+                            <div class="comp-info">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <span>حدد الزيارات التي ترغب بمقارنتها بالأسفل (اختر زيارتين على الأقل).</span>
+                            </div>
+                            <button id="btn-print-comparison" class="btn btn-success" disabled>
+                                <i class="fa-solid fa-print"></i> طباعة المقارنة المحددة (<span
+                                    id="compare-count">0</span>)
+                            </button>
+                        </div>
+
+                        <div id="patient-visits-timeline" class="timeline">
+                            <!-- Dynamic history visits with their tables go here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 3: Settings -->
+            <section id="tab-settings" class="tab-content">
+                <div class="page-header">
+                    <h1>إعدادات النظام والمختبر</h1>
+                    <p class="subtitle">قم بتهيئة بيانات المختبر، شعار الطباعة، وقائمة التحاليل المعتمدة.</p>
+                </div>
+
+                <div class="grid-layout">
+                    <!-- Lab Info Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-building-user"></i>
+                            <h3>بيانات المختبر وشعار الطباعة</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="lab-settings-form">
+                                <div class="form-group">
+                                    <label for="settings-lab-name">اسم المختبر <span class="required">*</span></label>
+                                    <input type="text" id="settings-lab-name" required
+                                        placeholder="مثال: مختبر النخبة التخصصي للتحليلات المرضية">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="settings-lab-logo">شعار المختبر (اللوغو) <span
+                                            class="required">*</span></label>
+                                    <div class="logo-upload-box">
+                                        <div class="logo-preview-wrapper">
+                                            <img id="logo-preview-img" src="" alt="شعار المختبر" class="hidden">
+                                            <i class="fa-solid fa-image placeholder-icon"
+                                                id="logo-preview-placeholder"></i>
+                                        </div>
+                                        <div class="upload-controls">
+                                            <input type="file" id="settings-lab-logo" accept="image/*" class="hidden">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                onclick="document.getElementById('settings-lab-logo').click()">
+                                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                                اختر صورة الشعار
+                                            </button>
+                                            <span class="upload-tip">صورة مربعة PNG أو JPG لا تتجاوز 1 ميجابايت</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="settings-lab-address">عنوان المختبر <span
+                                            class="required">*</span></label>
+                                    <input type="text" id="settings-lab-address" required
+                                        placeholder="مثال: بغداد - حي المنصور - قرب تقاطع الرواد">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="settings-lab-phones">أرقام الهواتف والتواصل <span
+                                            class="required">*</span></label>
+                                    <input type="text" id="settings-lab-phones" required
+                                        placeholder="مثال: 07701234567 / 07801234567">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="settings-lab-email">البريد الإلكتروني</label>
+                                    <input type="email" id="settings-lab-email"
+                                        placeholder="مثال: info@clinicallab.com">
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fa-solid fa-save"></i>
+                                        حفظ بيانات المختبر
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Print Colors Customization Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-palette"></i>
+                            <h3>تخصيص ألوان طباعة شارات الفحوصات</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="print-colors-settings-form">
+                                <p class="form-section-description"
+                                    style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                                    حدد ألوان ودرجة خفة (شفافية خلفية الشارة) الفحوصات عند ظهورها في التقرير المطبوع.
+                                </p>
+
+                                <div class="color-setting-item"
+                                    style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 10px;">
+                                        <strong>الفحوصات الطبيعية (طبيعي)</strong>
+                                        <select id="color-normal-select" style="width: auto; padding: 0.4rem 0.8rem;">
+                                            <option value="green">أخضر (Default)</option>
+                                            <option value="blue">أزرق</option>
+                                            <option value="yellow">أصفر</option>
+                                            <option value="red">أحمر</option>
+                                        </select>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                                        <span
+                                            style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">درجة
+                                            خفة اللون:</span>
+                                        <input type="range" id="opacity-normal-range" min="5" max="100" value="15"
+                                            step="5" style="flex-grow: 1;">
+                                        <span id="opacity-normal-val"
+                                            style="font-weight: bold; min-width: 35px; text-align: left;">15%</span>
+                                    </div>
+                                </div>
+
+                                <div class="color-setting-item"
+                                    style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 10px;">
+                                        <strong>الفحوصات المرتفعة (مرتفع)</strong>
+                                        <select id="color-high-select" style="width: auto; padding: 0.4rem 0.8rem;">
+                                            <option value="red">أحمر (Default)</option>
+                                            <option value="yellow">أصفر</option>
+                                            <option value="blue">أزرق</option>
+                                            <option value="green">أخضر</option>
+                                        </select>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                                        <span
+                                            style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">درجة
+                                            خفة اللون:</span>
+                                        <input type="range" id="opacity-high-range" min="5" max="100" value="15"
+                                            step="5" style="flex-grow: 1;">
+                                        <span id="opacity-high-val"
+                                            style="font-weight: bold; min-width: 35px; text-align: left;">15%</span>
+                                    </div>
+                                </div>
+
+                                <div class="color-setting-item"
+                                    style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 10px;">
+                                        <strong>الفحوصات المنخفضة (منخفض)</strong>
+                                        <select id="color-low-select" style="width: auto; padding: 0.4rem 0.8rem;">
+                                            <option value="blue">أزرق (Default)</option>
+                                            <option value="yellow">أصفر</option>
+                                            <option value="red">أحمر</option>
+                                            <option value="green">أخضر</option>
+                                        </select>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                                        <span
+                                            style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">درجة
+                                            خفة اللون:</span>
+                                        <input type="range" id="opacity-low-range" min="5" max="100" value="15" step="5"
+                                            style="flex-grow: 1;">
+                                        <span id="opacity-low-val"
+                                            style="font-weight: bold; min-width: 35px; text-align: left;">15%</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fa-solid fa-save"></i>
+                                        حفظ إعدادات ألوان الفحوصات
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Manage Tests Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-flask-vial"></i>
+                            <h3>إدارة وتخصيص الفحوصات الطبية</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Add Test Type Form -->
+                            <form id="add-test-type-form" class="bg-light-box">
+                                <h4>إضافة/تعديل تحليل في البرنامج</h4>
+                                <div class="test-form-grid">
+                                    <div class="form-group">
+                                        <label for="new-test-name">اسم التحليل (الرمز) <span
+                                                class="required">*</span></label>
+                                        <input type="text" id="new-test-name" required
+                                            placeholder="مثال: CBC أو Glucose">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="new-test-type">نوع نتيجة التحليل <span
+                                                class="required">*</span></label>
+                                        <select id="new-test-type" required>
+                                            <option value="numeric" selected>رقمي (Numeric)</option>
+                                            <option value="text">نصي / وصفي (Textual)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" id="group-new-test-min">
+                                        <label for="new-test-min">الحد الأدنى الطبيعي <span
+                                                class="required">*</span></label>
+                                        <input type="number" step="any" id="new-test-min" placeholder="مثال: 70">
+                                    </div>
+
+                                    <div class="form-group" id="group-new-test-max">
+                                        <label for="new-test-max">الحد الأعلى الطبيعي <span
+                                                class="required">*</span></label>
+                                        <input type="number" step="any" id="new-test-max" placeholder="مثال: 110">
+                                    </div>
+
+                                    <div class="form-group hidden" id="group-new-test-normal-val">
+                                        <label for="new-test-normal-val">النتيجة الطبيعية المقترحة <span
+                                                class="required">*</span></label>
+                                        <input type="text" id="new-test-normal-val"
+                                            placeholder="مثال: Negative أو Normal">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="new-test-unit">وحدة القياس <span class="required">*</span></label>
+                                        <input type="text" id="new-test-unit" placeholder="مثال: mg/dL أو -">
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="submit" id="btn-submit-test-type"
+                                        class="btn btn-success margin-top-1">
+                                        <i class="fa-solid fa-plus-circle"></i>
+                                        <span>إضافة التحليل إلى القائمة</span>
+                                    </button>
+                                    <button type="button" id="btn-cancel-edit-test"
+                                        class="btn btn-outline-secondary margin-top-1 hidden">
+                                        <i class="fa-solid fa-times"></i>
+                                        إلغاء التعديل
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Tests List Directory -->
+                            <div class="tests-list-section margin-top-2">
+                                <h4>التحاليل المتاحة بالنظام حالياً</h4>
+                                <div class="table-container max-height-300">
+                                    <table class="data-table" id="all-tests-table">
+                                        <thead>
+                                            <tr>
+                                                <th>اسم التحليل</th>
+                                                <th>الرنج الطبيعي</th>
+                                                <th>الوحدة</th>
+                                                <th>إجراء</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Dynamic test rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manage Profiles Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-folder-plus"></i>
+                            <h3>إدارة مجموعات الفحوصات (Profiles/Panels)</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="add-profile-form" class="bg-light-box"
+                                style="padding: 1.25rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                                <h4>إنشاء مجموعة فحوصات جديدة</h4>
+                                <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                                    <div class="form-group">
+                                        <label for="new-profile-name">اسم المجموعة (مثال: Lipid Profile) <span
+                                                class="required">*</span></label>
+                                        <input type="text" id="new-profile-name" required
+                                            placeholder="مثال: وظائف الكلى KFT">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>اختر الفحوصات المكونة للمجموعة <span class="required">*</span></label>
+                                        <div id="profile-tests-checkboxes"
+                                            style="max-height: 150px; overflow-y: auto; border: 1.5px solid var(--border-color); padding: 10px; border-radius: 8px; background: white; display: flex; flex-direction: column; gap: 8px;">
+                                            <!-- Checkboxes list of test types -->
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success" style="align-self: flex-start;">
+                                        <i class="fa-solid fa-plus-circle"></i> إنشاء المجموعة
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Profiles List -->
+                            <div class="profiles-list-section">
+                                <h4>المجموعات المعرفة حالياً</h4>
+                                <div class="table-container max-height-200">
+                                    <table class="data-table" id="all-profiles-table">
+                                        <thead>
+                                            <tr>
+                                                <th>اسم المجموعة</th>
+                                                <th>الفحوصات التابعة</th>
+                                                <th>إجراء</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Dynamic profile rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Printable Medical Report (Only visible when printing) -->
+    <div id="print-report-template" class="print-only">
+        <!-- Decorative Border Frame -->
+        <div class="print-frame">
+            <!-- Decorative Top Band -->
+            <div class="print-top-band"></div>
+
+            <!-- Centered Faint Watermark Logo/Microscope -->
+            <div class="print-watermark" id="print-watermark"></div>
+
+            <!-- Print Header: Right-aligned logo and name -->
+            <header class="print-header">
+                <div class="print-logo-container-wrapper">
+                    <img id="print-logo" src="" alt="شعار المختبر" class="print-logo-img">
+                    <div id="print-logo-placeholder" class="print-logo-placeholder">
+                        <i class="fa-solid fa-microscope"></i>
+                    </div>
+                </div>
+                <div class="print-header-right">
+                    <h1 id="print-lab-name">مختبر التحليلات الطبية</h1>
+                    <p class="print-subtitle-ar">تحليلات مرضية تخصصية هرمونات وسوائل الجسم</p>
+                </div>
+            </header>
+
+            <div class="print-title-box">
+                <div class="line-decorator"></div>
+                <h2 class="print-report-title">تقرير فحص طبي / MEDICAL LABORATORY REPORT</h2>
+                <div class="line-decorator"></div>
+            </div>
+
+            <!-- Patient Info Panel (Structured Card Grid) -->
+            <section class="print-patient-card">
+                <div class="print-patient-row">
+                    <div class="print-patient-cell">
+                        <span class="cell-label">اسم المراجع / Name:</span>
+                        <span class="cell-value font-arabic" id="print-patient-name"></span>
+                    </div>
+                    <div class="print-patient-cell">
+                        <span class="cell-label">رقم المراجع / Patient ID:</span>
+                        <span class="cell-value font-numeric" id="print-patient-id-val"></span>
+                    </div>
+                    <div class="print-patient-cell">
+                        <span class="cell-label">تاريخ الفحص / Date:</span>
+                        <span class="cell-value font-numeric" id="print-patient-date"></span>
+                    </div>
+                </div>
+                <div class="print-patient-row">
+                    <div class="print-patient-cell">
+                        <span class="cell-label">العمر / Age:</span>
+                        <span class="cell-value font-numeric" id="print-patient-age"></span>
+                    </div>
+                    <div class="print-patient-cell">
+                        <span class="cell-label">الجنس / Gender:</span>
+                        <span class="cell-value" id="print-patient-gender"></span>
+                    </div>
+                    <div class="print-patient-cell">
+                        <span class="cell-label">رقم الفحص / Lab No:</span>
+                        <span class="cell-value font-numeric" id="print-patient-test-id"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Test Results Table -->
+            <section class="print-results-section">
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 38%; text-align: right;">اسم الفحص / Test Name</th>
+                            <th style="width: 15%; text-align: center;">النتيجة / Result</th>
+                            <th style="width: 12%; text-align: center;">الحالة / Flag</th>
+                            <th style="width: 23%; text-align: center;">المدى الطبيعي / Normal Range</th>
+                            <th style="width: 12%; text-align: center;">الوحدة / Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="print-results-table-body">
+                        <!-- Dynamic test results go here -->
+                    </tbody>
+                </table>
+            </section>
+
+
+
+            <!-- Print Footer -->
+            <footer class="print-footer">
+                <div class="print-footer-band"></div>
+                <div class="print-footer-content">
+                    <div class="print-footer-item">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <span id="print-lab-address">العنوان: بغداد</span>
+                    </div>
+                    <div class="print-footer-item font-numeric">
+                        <i class="fa-solid fa-phone"></i>
+                        <span id="print-lab-phones">الهاتف: 07700000000</span>
+                    </div>
+                    <div class="print-footer-item">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span id="print-lab-email">info@clinicallab.com</span>
+                    </div>
+                </div>
+                <p class="print-disclaimer">هذه النتائج تخص العينة المستلمة فقط. يرجى مراجعة الطبيب المختص للمطابقة
+                    الإكلينيكية.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Printable Comparison Report (Only visible when printing comparison) -->
+    <div id="print-comparison-template" class="print-only">
+        <div class="print-frame">
+            <div class="print-top-band"></div>
+            <div class="print-watermark" id="print-comparison-watermark"></div>
+
+            <header class="print-header">
+                <div class="print-logo-container-wrapper">
+                    <img id="print-comp-logo" src="" alt="شعار المختبر" class="print-logo-img">
+                    <div id="print-comp-logo-placeholder" class="print-logo-placeholder">
+                        <i class="fa-solid fa-microscope"></i>
+                    </div>
+                </div>
+                <div class="print-header-right">
+                    <h1 id="print-comp-lab-name">مختبر التحليلات الطبية</h1>
+                    <p class="print-subtitle-ar">تحليلات مرضية تخصصية هرمونات وسوائل الجسم</p>
+                </div>
+            </header>
+
+            <div class="print-title-box">
+                <div class="line-decorator"></div>
+                <h2 class="print-report-title">تقرير مقارنة الفحوصات / TEST COMPARISON REPORT</h2>
+                <div class="line-decorator"></div>
+            </div>
+
+            <!-- Patient Info Panel -->
+            <section class="print-patient-card">
+                <div class="print-patient-row">
+                    <div class="print-patient-cell">
+                        <span class="cell-label">اسم المراجع / Name:</span>
+                        <span class="cell-value font-arabic" id="print-comp-patient-name"></span>
+                    </div>
+                    <div class="print-patient-cell">
+                        <span class="cell-label">رقم المراجع / Patient ID:</span>
+                        <span class="cell-value font-numeric" id="print-comp-patient-id-val"></span>
+                    </div>
+                    <div class="print-patient-cell">
+                        <span class="cell-label">العمر / Age:</span>
+                        <span class="cell-value font-numeric" id="print-comp-patient-age"></span>
+                    </div>
+                </div>
+                <div class="print-patient-row">
+                    <div class="print-patient-cell">
+                        <span class="cell-label">الجنس / Gender:</span>
+                        <span class="cell-value" id="print-comp-patient-gender"></span>
+                    </div>
+                    <div class="print-patient-cell" style="flex: 2;">
+                        <span class="cell-label">الزيارات المقارنة / Compared Visits:</span>
+                        <span class="cell-value font-numeric" id="print-comp-visits-dates"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Test Results Table -->
+            <section class="print-results-section">
+                <table class="print-table" id="print-comparison-table">
+                    <thead>
+                        <tr id="print-comparison-table-header">
+                            <!-- Dynamic headers (Test name, Normal range, Unit, and then visit columns) -->
+                        </tr>
+                    </thead>
+                    <tbody id="print-comparison-table-body">
+                        <!-- Dynamic test results go here -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Print Footer -->
+            <footer class="print-footer">
+                <div class="print-footer-band"></div>
+                <div class="print-footer-content">
+                    <div class="print-footer-item">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <span id="print-comp-lab-address">العنوان: بغداد</span>
+                    </div>
+                    <div class="print-footer-item font-numeric">
+                        <i class="fa-solid fa-phone"></i>
+                        <span id="print-comp-lab-phones">الهاتف: 07700000000</span>
+                    </div>
+                    <div class="print-footer-item">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span id="print-comp-lab-email">info@clinicallab.com</span>
+                    </div>
+                </div>
+                <p class="print-disclaimer">هذه النتائج تخص العينات المستلمة في التواريخ المذكورة فقط. يرجى مراجعة
+                    الطبيب المختص للمطابقة الإكلينيكية.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- WhatsApp Sharing Modal -->
+    <div id="whatsapp-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-brands fa-whatsapp"></i> إرسال التقرير عبر الواتساب</h3>
+                <button class="close-modal-btn" id="btn-close-whatsapp-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="whatsapp-phone-input">رقم هاتف المراجع (مع مفتاح الدولة أو بدونه)</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-phone"></i>
+                        <input type="text" id="whatsapp-phone-input" placeholder="مثال: 07701234567 أو 9647701234567">
+                    </div>
+                    <small class="form-tip">سيتم إرسال الرسالة تلقائياً للرقم المدخل عبر تطبيق الواتساب.</small>
+                </div>
+                <div class="whatsapp-preview-box">
+                    <div class="preview-title">معاينة نص الرسالة:</div>
+                    <pre id="whatsapp-message-preview" class="preview-content"
+                        style="white-space: pre-wrap; font-family: inherit; background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 0.85rem; max-height: 180px; overflow-y: auto; text-align: right; direction: rtl;"></pre>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button type="button" id="btn-whatsapp-share-file" class="btn btn-primary hidden">
+                    <i class="fa-solid fa-share-nodes"></i> مشاركة ملف PDF مباشرة
+                </button>
+                <button type="button" id="btn-whatsapp-web" class="btn btn-success">
+                    <i class="fa-brands fa-whatsapp"></i> تحميل الـ PDF وفتح الواتساب
+                </button>
+                <button type="button" id="btn-cancel-whatsapp" class="btn btn-outline-secondary">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Results Entry Modal -->
+    <div id="profile-input-modal" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-invoice"></i> إدخال نتائج مجموعة: <span id="modal-profile-name"
+                        class="text-blue"></span></h3>
+                <button class="close-modal-btn" id="btn-close-profile-modal">&times;</button>
+            </div>
+            <form id="profile-results-form">
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <div id="profile-inputs-container" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <!-- Dynamic inputs will go here -->
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-plus-circle"></i> إضافة التحاليل للزيارة
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="btn-cancel-profile-modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- html2pdf.js CDN library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- JavaScript Source File -->
+    <script src="app.js"></script>
+</body>
+
+</html>
