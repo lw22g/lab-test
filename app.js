@@ -611,6 +611,78 @@ function setupEventListeners() {
     DOM.btnCloseDetails.addEventListener('click', () => {
         DOM.patientDetailCard.classList.add('hidden');
     });
+
+    // Sidebar cloud badge navigation click
+    const cloudStatusBadge = document.getElementById('cloud-status-badge');
+    if (cloudStatusBadge) {
+        cloudStatusBadge.addEventListener('click', () => {
+            const settingsBtn = document.querySelector('button[data-tab="settings"]');
+            if (settingsBtn) settingsBtn.click();
+        });
+    }
+
+    // Cloud retry connection click
+    const cloudRetryBtn = document.getElementById('btn-cloud-retry');
+    if (cloudRetryBtn) {
+        cloudRetryBtn.addEventListener('click', () => {
+            syncWithFirebase();
+        });
+    }
+
+    // Edit Patient form submit
+    const editPatientForm = document.getElementById('edit-patient-form');
+    if (editPatientForm) {
+        editPatientForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const patientId = document.getElementById('edit-patient-id').value;
+            const name = document.getElementById('edit-patient-name').value.trim();
+            const phone = document.getElementById('edit-patient-phone').value.trim();
+            const gender = document.getElementById('edit-patient-gender').value;
+            const age = parseInt(document.getElementById('edit-patient-age').value) || 0;
+            
+            if (state.patients[patientId]) {
+                state.patients[patientId].name = name;
+                state.patients[patientId].phone = phone;
+                state.patients[patientId].gender = gender;
+                state.patients[patientId].age = age;
+                
+                localStorage.setItem('lab_patients', JSON.stringify(state.patients));
+                
+                // Sync to Firebase
+                if (db) {
+                    db.collection('patients').doc(patientId).set(state.patients[patientId])
+                        .catch(err => console.error("Firebase update patient error:", err));
+                }
+                
+                document.getElementById('edit-patient-modal').classList.add('hidden');
+                renderPatientsHistoryTable();
+                initDashboard();
+                
+                // Update details view if active for this patient
+                const detailCard = document.getElementById('patient-detail-card');
+                const detailId = document.getElementById('detail-patient-id');
+                if (detailCard && !detailCard.classList.contains('hidden') && detailId && detailId.textContent === patientId) {
+                    showPatientPastVisits(patientId);
+                }
+                
+                showAlert("تم تحديث بيانات المراجع بنجاح");
+            }
+        });
+    }
+
+    // Close Edit Patient Modal events
+    const closeEditModalBtn = document.getElementById('btn-close-edit-patient-modal');
+    if (closeEditModalBtn) {
+        closeEditModalBtn.addEventListener('click', () => {
+            document.getElementById('edit-patient-modal').classList.add('hidden');
+        });
+    }
+    const cancelEditModalBtn = document.getElementById('btn-cancel-edit-patient');
+    if (cancelEditModalBtn) {
+        cancelEditModalBtn.addEventListener('click', () => {
+            document.getElementById('edit-patient-modal').classList.add('hidden');
+        });
+    }
 }
 
 // --- Searchable Dropdown Logics ---
@@ -1102,12 +1174,18 @@ function renderPatientsHistoryTable() {
             <td>${patient.age} سنة</td>
             <td><span class="badge" style="background-color: var(--primary-light); color: var(--primary);">${patient.visits.length} زيارات</span></td>
             <td>
-                <div style="display: flex; gap: 0.5rem;">
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                     <button class="btn btn-sm btn-primary" onclick="showPatientPastVisits('${patient.patientId}')">
                         <i class="fa-solid fa-clock-rotate-left"></i> السجل
                     </button>
                     <button class="btn btn-sm btn-success" onclick="startNewVisitForPatient('${patient.patientId}')">
                         <i class="fa-solid fa-plus"></i> زيارة جديدة
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" title="تعديل المراجع" onclick="editPatient('${patient.patientId}')">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" title="حذف المراجع" onclick="deletePatient('${patient.patientId}')">
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
             </td>
@@ -2299,11 +2377,16 @@ function renderEarningsTrendChart(allVisits) {
 async function syncWithFirebase() {
     if (typeof firebase === 'undefined') {
         console.log("Firebase SDK is not loaded. Operating in offline/LocalStorage mode.");
+        updateCloudStatus('failed', 'Firebase SDK not loaded');
         return;
     }
     
+    updateCloudStatus('connecting');
+    
     try {
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         db = firebase.firestore();
         
         // Fetch configurations
@@ -2362,9 +2445,134 @@ async function syncWithFirebase() {
         // Re-initialize active form and dashboard analytics with new synced data
         initForm();
         initDashboard();
+        updateCloudStatus('connected');
         showAlert("تم المزامنة مع قاعدة البيانات السحابية بنجاح ✅");
     } catch (e) {
         console.error("Firebase syncing failed:", e);
+        updateCloudStatus('failed', e.message || 'Connection failed');
         showAlert("فشل المزامنة مع السحابة، تم تشغيل النظام بالوضع المحلي ⚠️", "warning");
     }
 }
+
+function updateCloudStatus(status, errorMsg = "") {
+    const badge = document.getElementById('cloud-status-badge');
+    const card = document.getElementById('cloud-diagnostic-card');
+    const text = document.getElementById('cloud-diagnostic-text');
+    const icon = document.getElementById('cloud-diagnostic-icon');
+    const btn = document.getElementById('btn-cloud-retry');
+    
+    if (status === 'connected') {
+        if (badge) {
+            badge.style.background = 'rgba(16, 185, 129, 0.15)';
+            badge.style.color = '#10b981';
+            badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> <span>سحابي: متصل</span>`;
+        }
+        if (card) {
+            card.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            card.style.backgroundColor = 'rgba(240, 253, 250, 0.4)';
+        }
+        if (icon) {
+            icon.className = 'fa-solid fa-cloud-arrow-up';
+            icon.style.color = '#10b981';
+        }
+        if (text) {
+            text.innerHTML = `<strong>الوضع الحالي:</strong> متصل بالسحابة ومزامن بالكامل ✅. جميع بيانات المراجعين والإعدادات يتم حفظها تلقائياً سحابياً ومحلياً.`;
+        }
+        if (btn) {
+            btn.className = 'btn btn-outline-success';
+            btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> متصل`;
+            btn.disabled = true;
+        }
+    } else if (status === 'connecting') {
+        if (badge) {
+            badge.style.background = 'rgba(59, 130, 246, 0.15)';
+            badge.style.color = '#3b82f6';
+            badge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>جاري الاتصال...</span>`;
+        }
+        if (card) {
+            card.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+            card.style.backgroundColor = 'rgba(239, 246, 255, 0.4)';
+        }
+        if (icon) {
+            icon.className = 'fa-solid fa-cloud fa-bounce';
+            icon.style.color = '#3b82f6';
+        }
+        if (text) {
+            text.innerHTML = `<strong>الوضع الحالي:</strong> جاري تهيئة الاتصال السحابي بقاعدة البيانات...`;
+        }
+        if (btn) {
+            btn.disabled = true;
+        }
+    } else {
+        // failed / offline
+        if (badge) {
+            badge.style.background = 'rgba(239, 68, 68, 0.15)';
+            badge.style.color = '#ef4444';
+            badge.innerHTML = `<i class="fa-solid fa-cloud-bolt"></i> <span>سحابي: غير متصل</span>`;
+        }
+        if (card) {
+            card.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            card.style.backgroundColor = 'rgba(254, 242, 242, 0.4)';
+        }
+        if (icon) {
+            icon.className = 'fa-solid fa-cloud-bolt';
+            icon.style.color = '#ef4444';
+        }
+        if (text) {
+            let msg = `لم يتم العثور على قاعدة بيانات Firestore الافتراضية للمشروع <code>lab-test-1c156</code>.`;
+            if (errorMsg.includes("permission-denied") || errorMsg.includes("Permission denied") || errorMsg.includes("Rules")) {
+                msg = `تم رفض الاتصال بسبب قواعد الحماية (Rules). يرجى تعديل الـ Rules في Firebase Console للسماح بالقراءة والكتابة بدون شروط مؤقتاً.`;
+            } else if (errorMsg.includes("not-found") || errorMsg.includes("does not exist") || errorMsg.includes("database")) {
+                msg = `قاعدة بيانات Firestore (default) غير منشأة للمشروع. يرجى فتح <a href="https://console.firebase.google.com/project/lab-test-1c156/firestore" target="_blank" style="text-decoration: underline; font-weight: bold; color: #ef4444;">كونسول Firebase</a> والضغط على "Create Database" لإنشائها.`;
+            } else if (errorMsg) {
+                msg = `فشل الاتصال بسبب خطأ Firebase: ${errorMsg}`;
+            }
+            text.innerHTML = `<strong>الوضع الحالي:</strong> يعمل محلياً (Offline) ⚠️.<br>${msg}`;
+        }
+        if (btn) {
+            btn.className = 'btn btn-outline-danger';
+            btn.innerHTML = `<i class="fa-solid fa-rotate"></i> إعادة محاولة الاتصال`;
+            btn.disabled = false;
+        }
+    }
+}
+
+window.editPatient = function(patientId) {
+    const patient = state.patients[patientId];
+    if (!patient) return;
+    
+    document.getElementById('edit-patient-id').value = patientId;
+    document.getElementById('edit-patient-name').value = patient.name;
+    document.getElementById('edit-patient-phone').value = patient.phone || '';
+    document.getElementById('edit-patient-gender').value = patient.gender || 'ذكر';
+    document.getElementById('edit-patient-age').value = patient.age || '';
+    
+    document.getElementById('edit-patient-modal').classList.remove('hidden');
+};
+
+window.deletePatient = function(patientId) {
+    const patient = state.patients[patientId];
+    if (!patient) return;
+    if (confirm(`هل أنت متأكد من حذف المراجع "${patient.name}" بالكامل؟ سيتم حذف جميع زياراته وسجلاته نهائياً ولا يمكن استرجاعها.`)) {
+        delete state.patients[patientId];
+        localStorage.setItem('lab_patients', JSON.stringify(state.patients));
+        
+        // Sync to Firebase
+        if (db) {
+            db.collection('patients').doc(patientId).delete()
+                .catch(err => console.error("Firebase delete patient error:", err));
+        }
+        
+        renderPatientsHistoryTable();
+        initDashboard();
+        
+        // Hide details card if it was open for this patient
+        const detailCard = document.getElementById('patient-detail-card');
+        const detailId = document.getElementById('detail-patient-id');
+        if (detailCard && detailId && detailId.textContent === patientId) {
+            detailCard.classList.add('hidden');
+        }
+        
+        showAlert(`تم حذف المراجع "${patient.name}" وكافة سجلاته بنجاح`, "warning");
+    }
+};
